@@ -20,55 +20,63 @@
     <alias name="dataSource-${Globals.DbType}" alias="egov.dataSource" />
     
 	<!-- hsql -->
-    <jdbc:embedded-database id="dataSource-hsql" type="HSQL">
+    <!-- <jdbc:embedded-database id="dataSource-hsql" type="HSQL">
 		<jdbc:script location= "classpath:/db/shtdb.sql"/>
 	</jdbc:embedded-database>
 	
- 	<!-- <bean id="dataSource-hsql" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+ 	<bean id="dataSource-hsql" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 		<property name="driverClassName" value="net.sf.log4jdbc.DriverSpy"/>
 		<property name="url" value="jdbc:log4jdbc:hsqldb:hsql://localhost/sampledb"/>
 		<property name="username" value="sa"/>
 	</bean> -->
 	 
 	<!-- mysql -->
-    <bean id="dataSource-mysql" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	
+		<!-- JNDI 선언 -->
+		
+		<bean id="dataSource-mysql" class="org.springframework.jndi.JndiObjectFactoryBean">
+	      <property name="jndiName" value="java:comp/env/jdbc/schoolDB" />
+	   	</bean>
+	   
+	    <!-- 
+   <bean id="dataSource-mysql" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="${Globals.DriverClassName}"/>
         <property name="url" value="${Globals.Url}" />
         <property name="username" value="${Globals.UserName}"/>
         <property name="password" value="${Globals.Password}"/>
     </bean>
-    
+     -->
     <!-- Oracle -->
-    <bean id="dataSource-oracle" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    <!-- <bean id="dataSource-oracle" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="${Globals.DriverClassName}"/>
         <property name="url" value="${Globals.Url}" />
         <property name="username" value="${Globals.UserName}"/>
         <property name="password" value="${Globals.Password}"/>
-    </bean>
+    </bean> -->
     
     <!-- Altibase -->
-    <bean id="dataSource-altibase" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    <!-- <bean id="dataSource-altibase" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="${Globals.DriverClassName}"/>
         <property name="url" value="${Globals.Url}" />
         <property name="username" value="${Globals.UserName}"/>
         <property name="password" value="${Globals.Password}"/>
         <property name="maxActive" value="10"/>
-    </bean>
+    </bean> -->
 
     <!-- Tibero -->
-    <bean id="dataSource-tibero" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    <!-- <bean id="dataSource-tibero" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="${Globals.DriverClassName}"/>
         <property name="url" value="${Globals.Url}" />
         <property name="username" value="${Globals.UserName}"/>
         <property name="password" value="${Globals.Password}"/>
-    </bean>
+    </bean> -->
 	
 	<!-- cubrid -->
-    <bean id="dataSource-cubrid" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    <!-- <bean id="dataSource-cubrid" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="${Globals.DriverClassName}"/>
         <property name="url" value="${Globals.Url}" />
         <property name="username" value="${Globals.UserName}"/>
         <property name="password" value="${Globals.Password}"/>
-    </bean>
+    </bean> -->
     
 </beans>
