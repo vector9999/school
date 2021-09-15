@@ -5,18 +5,23 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>목록 가져오기 실습</title>
+<title>목록 가져오기 과제</title>
 </head>
 <body>
 <table>
 	<thead>
-		<tr>TEMP_ID</tr>
-		<tr>TEMP_VAL</tr>
+		<tr>
+			<th>TEMP_VAL</th>
+			<th>TEMP_ID</th>
+		</tr>
 	</thead>
 	<tbody>
-		<c:if test="list">
-		
-		</c:if>
+	<c:forEach var="list" items="${list}">
+			<tr>
+				<td>${list.tempVal}</td>
+				<td>${list.tempId}</td>
+			</tr>
+	</c:forEach>
 	</tbody>
 </table>
 </body>

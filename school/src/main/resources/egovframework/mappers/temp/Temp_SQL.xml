@@ -25,14 +25,44 @@
 			)
 	</insert>
 	
-	<!-- 리스트 만들어보기 -->
-	<select id="listTemp" resultMap="temp">
-				SELECT
-			TEMP_ID
-			, TEMP_VAL
+	<!-- 리스트 과제 -->
+<!-- 	<select id="listTemp" resultMap="temp">
+		SELECT
+			TEMP_VAL
+			, TEMP_ID
 		FROM lettemp2
-		WHERE TEMP_ID = #{tempId}
+	</select> -->
+	<!-- 리스트 과제 -->
+	
+	<!-- 교수님 crud -->
+	<select id="selectTempList" resultType="egovMap"> <!-- 컬럼의 순서는 상관이 없다. 사용자 입장에서 작성. 다만, resultMap안에서 index줄때는 순서 중요 -->
+		SELECT
+		 TEMP_ID
+		 	, TEMP_VAL
+		FROM lettemp2
+		LIMIT #{recordCountPerPage} OFFSET #{firstIndex} <!-- 페이징.  limit사용 : mysql,mariadb / rownum사용 : Oracle -->
 	</select>
-	<!-- 리스트 만들어보기 -->
+	
+	<select id="selectTempListCnt" resultType="java.lang.Integer"> <!-- 페이지네이션 처리를 위한  총 페이지수 -->
+		SELECT
+			COUNT(*) CNT <!-- (AS) CNT, AS 작성유무는 DB마다 다르다.  -->
+		FROM lettemp2
+	</select>
+	
+	<update id="updateTemp" parameterType="egovframework.let.temp.service.TempVO">
+		UPDATE lettemp2 SET
+			TEMP_VAL = #{tempVal}
+		WHERE TEMP_ID = #{tempId} <!-- 반드시 pk값을 받아야한다. -->
+	</update>
+	
+	<delete id="deleteTemp" parameterType="egovframework.let.temp.service.TempVO"> <!-- delete문은 실무에서 잘 안쓰인다. 다르게 쓰는방법 나중에 알려줄것 -->
+		DELETE FROM lettemp2
+		WHERE TEMP_ID = #{tempId} <!-- 반드시 pk값을 받아야한다. -->
+	</delete>
+	<!-- 교수님 crud -->
+	
+	
+	<!-- 이상 6개의 쿼리문은 알고있어야함 - crud의 기본 쿼리문 select,list,count,insert,update,delete -->
+	
 	
 </mapper>
