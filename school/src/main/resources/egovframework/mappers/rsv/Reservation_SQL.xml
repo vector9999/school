@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.let.rsv.service.impl.ReservationMapper">
+
+	<resultMap id="reservation" type="egovframework.let.rsv.service.ReservationVO">
+		<result property="resveId" column="RESVE_ID"/>
+		<result property="resveSeCode" column="RESVE_SE_CODE"/>
+		<result property="resveSj" column="RESVE_SJ"/>
+		<result property="recNm" column="REC_NM"/>
+		<result property="maxAplyCnt" column="MAX_APLY_CNT"/>
+		<result property="useBeginDt" column="USE_BEGIN_DT"/>
+		<result property="useEndDt" column="USE_END_DT"/>
+		<result property="useBeginTime" column="USE_BEGIN_TIME"/>
+		<result property="useEndTime" column="USE_END_TIME"/>
+		<result property="resveCn" column="RESVE_CN"/>
+		<result property="reqstBgnde" column="REQST_BGNDE"/>
+		<result property="reqstEndde" column="REQST_ENDDE"/>
+		<result property="useAt" column="USE_AT"/>
+		<result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+		<result property="frstRegisterId" column="FRST_REGISTER_ID"/>
+		<result property="applyCnt" column="APPLY_CNT"/>
+		<result property="applyStatus" column="APPLY_SATATUS"/>
+		<result property="applyFCnt" column="APPLY_F_CNT"/>
+	</resultMap>
+	
+	<select id="selectReservationList" resultType="egovMap">
+		SELECT
+			A.RESVE_ID
+			, A.RESVE_SE_CODE
+			, A.RESVE_SJ
+			, A.REC_NM
+			, A.MAX_APLY_CNT
+			, A.USE_BEGIN_DT
+			, A.USE_END_DT
+			, A.USE_BEGIN_TIME
+			, A.USE_END_TIME
+			, A.RESVE_CN
+			, A.REQST_BGNDE
+			, A.REQST_ENDDE
+			, A.USE_AT
+			, A.FRST_REGIST_PNTTM
+			, A.FRST_REGISTER_ID
+			, (SELECT 
+					COUNT(*)
+				FROM RESVEREQSTINFO B
+				WHERE A.RESVE_ID - B.RESVE_ID) AS APPLY_CNT <!-- 총 신청자수를 가져오는 것, 댓글 수 가져올때도 사용됨. 단 여기서는 여러 컬럼이 나오면 안됨. 그래서 주로 총 수 같은걸 많이 가져옴  -->
+			<![CDATA[										
+			, CASE WHEN DATE_FORMAT(NOW(), '%Y-%m-%d') < A.REQST_BGNDE THEN 1
+				   WHEN DATE_FORMAT(NOW(), '%Y-%m-%d') >= A.REQST_BGNDE
+				   		AND DATE_FORMAT(NOW(), '%Y-%m-%d') <= A.REQST_ENDDE THEN 2
+				   WHEN DATE_FORMAT(NOW(), '%Y-%m-%d') > A.REQST_ENDDE
+				   		AND DATE_FORMAT(NOW(), '%Y-%m-%d') < A.USE_BEGIN_DT THEN 3
+				   WHEN DATE_FORMAT(NOW(), '%Y-%m-%d') >= A.USE_BEGIN_DT
+				   		AND DATE_FORMAT(NOW(), '%Y-%m-%d') <= A.USE_END_DT THEN 4
+				   ELSE 5
+			  END AS APPLY_STATUS
+			]]> <!-- 첫째 줄 부터, 신청시작일보다 작으면, 1로 표현. 1대신 코드로도 들어갈 수도 있음. 예약상태값(접수전, 접수중, 운영중, 종료 등을 나타냄)
+					 실무에서 CASE WHEN을 많이 사용하니 알아두자. 여러개를 비교하기 위해서 사용. 모든 DBMS에서 문법이 동일.
+					 CDATA 왜 사용하는지? 꺽쇠태그(<, >)들을 프로그램에서 읽지 못함. 쿼리등이 정상적으로 종료 안되니 에러가 떠서, 그걸 잡아 주는 것.  -->
+			, (SELECT
+					COUNT(*)
+				FROM RESVEREQSTINFO B
+				WHERE A.RESVE_ID = B.RESVE_ID
+					AND B.CONFM_SE_CODE = '0') AS APPLY_F_CNT
+			FROM RESVEINFO A
+			<include refid="selectReservationListWhere"></include> <!-- 관리자가 승인한 총 인원 수, 선착순 같은 것을 할때 주로 이렇게 사용. 정원이 초과되었으면 사용자에게 예약마감을 알려줌. 상세페이지 이동할때마다 계속 사용되는 것. 쇼핑몰에서 매진이나 남은 갯수 등을 표시하는 컬럼  -->
+			ORDER BY A.FRST_REGIST_PNTTM DESC
+			LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+	
+	<select id="selectReservationListCnt" resultType="java.lang.Integer"> <!-- 단순한 카운트 쿼리문 -->
+		SELECT
+			COUNT(*) MAX_APLY_CNT
+			FROM RESVEINFO A
+			<include refid="selectReservationListWhere"></include>
+	</select>
+	
+	<sql id="selectReservationListWhere">
+		<where>
+			A.USE_AT = 'Y'
+				<if test='searchCondition != null and searchCondition != ""'>
+					<choose>
+						<when test='searchCondition == "0"'>
+							AND A.RESVE_SJ LIKE CONCAT('%', #{searchKeyword}, '%')
+						</when>
+						<when test='searchCondition == "1"'>
+							AND A.RESVE_CN LIKE CONCAT('%', #{searchKeyword}, '%')
+						</when>
+					</choose>
+				</if>
+		</where>
+	</sql>
+	
+	<select id="selectReservation" resultMap="reservation"> 
+		SELECT
+			A.RESVE_ID
+			, A.RESVE_SE_CODE
+			, A.RESVE_SJ
+			, A.REC_NM
+			, A.MAX_APLY_CNT
+			, A.USE_BEGIN_DT
+			, A.USE_END_DT
+			, A.USE_BEGIN_TIME
+			, A.USE_END_TIME
+			, A.RESVE_CN
+			, A.REQST_BGNDE
+			, A.REQST_ENDDE
+			, A.USE_AT
+			, A.FRST_REGIST_PNTTM
+			, A.FRST_REGISTER_ID
+			, (SELECT 
+					COUNT(*)
+				FROM RESVEREQSTINFO B
+				WHERE A.RESVE_ID - B.RESVE_ID) AS APPLY_CNT
+			<![CDATA[
+			, CASE WHEN DATE_FORMAT(NOW(), '%Y-%m-%d') < A.REQST_BGNDE THEN 1
+				   WHEN DATE_FORMAT(NOW(), '%Y-%m-%d') >= A.REQST_BGNDE
+				   		AND DATE_FORMAT(NOW(), '%Y-%m-%d') <= A.REQST_ENDDE THEN 2
+				   WHEN DATE_FORMAT(NOW(), '%Y-%m-%d') > A.REQST_ENDDE
+				   		AND DATE_FORMAT(NOW(), '%Y-%m-%d') < A.USE_BEGIN_DT THEN 3
+				   WHEN DATE_FORMAT(NOW(), '%Y-%m-%d') >= A.USE_BEGIN_DT
+				   		AND DATE_FORMAT(NOW(), '%Y-%m-%d') <= A.USE_END_DT THEN 4
+				   ELSE 5
+			  END AS APPLY_STATUS
+			]]>
+			, (SELECT
+					COUNT(*)
+				FROM RESVEREQSTINFO B
+				WHERE A.RESVE_ID = B.RESVE_ID
+					AND B.CONFM_SE_CODE = '0') AS APPLY_F_CNT
+			FROM RESVEINFO A
+			WHERE A.RESVE_ID = #{resveId}
+				AND A.USE_AT = 'Y'
+	</select>
+	
+	<insert id="insertReservation" parameterType="egovframework.let.rsv.service.ReservationVO"> <!-- 요즘은 INSERT 할때 LAST 밑에 두줄을 받게끔 처리함. 수정할때만이 아니라 등록할때도 쓴다는점! -->
+	 	INSERT INTO RESVEINFO (
+	 		RESVE_ID
+			, RESVE_SE_CODE
+			, RESVE_SJ
+			, REC_NM
+			, MAX_APLY_CNT
+			, USE_BEGIN_DT
+			, USE_END_DT
+			, USE_BEGIN_TIME
+			, USE_END_TIME
+			, RESVE_CN
+			, REQST_BGNDE
+			, REQST_ENDDE
+			, USE_AT
+			, FRST_REGIST_PNTTM
+			, FRST_REGISTER_ID
+			, LAST_UPDT_PNTTM
+			, LAST_UPDUSR_ID
+	 	) VALUES (
+	 		#{resveId}
+	 		, #{resveSeCode}
+	 		, #{resveSj}
+	 		, #{recNm}
+	 		, #{maxAplyCnt}
+	 		, #{useBeginDt}
+	 		, #{useEndDt}
+	 		, #{useBeginTime}
+	 		, #{useEndTime}
+	 		, #{resveCn}
+			, #{reqstBgnde}
+	 		, #{reqstEndde}
+	 		,'Y'
+	 		, NOW()
+	 		, #{userId}
+	 		, NOW()
+	 		, #{userId}
+	 	)
+	</insert>
+	
+	<update id="updateReservation" parameterType="egovframework.let.rsv.service.ReservationVO">
+		UPDATE RESVEINFO SET
+			RESVE_SE_CODE = #{resveSeCode}
+			, RESVE_SJ = #{resveSj}
+			, REC_NM = #{recNm}
+			, MAX_APLY_CNT = #{maxAplyCnt}
+			, USE_BEGIN_DT = #{useBeginDt}
+			, USE_END_DT = #{useEndDt}
+			, USE_BEGIN_TIME = #{useBeginTime}
+			, USE_END_TIME = #{useEndTime}
+			, RESVE_CN = #{resveCn}
+			, REQST_BGNDE = #{reqstBgnde}
+			, REQST_ENDDE = #{reqstEndde}
+			, LAST_UPDT_PNTTM = NOW()
+			, LAST_UPDUSR_ID = #{userId}
+		WHERE RESVE_ID = #{resveId}
+
+	</update>
+	
+	<update id="deleteReservation" parameterType="egovframework.let.rsv.service.ReservationVO"> <!-- 사용여부를 컬럼으로 해서 가져다 쓰는 것 -->
+		UPDATE RESVEINFO SET
+			USE_AT = 'N'
+		WHERE RESVE_ID = #{resveId}
+	</update>
+		
+</mapper>
