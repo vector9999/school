@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.let.rsv.service.impl.ReservationApplyMapper">
+
+	<resultMap id="reservationApply" type="egovframework.let.rsv.service.ReservationApplyVO">
+		<result property="reqstId" column="REQST_ID"/>
+		<result property="resveId" column="RESVE_ID"/>
+		<result property="resveDe" column="RESVE_DE"/>
+		<result property="chargerNm" column="CHARGER_NM"/>
+		<result property="telno" column="TELNO"/>
+		<result property="email" column="EMAIL"/>
+		<result property="confmSeCode" column="CONFM_SE_CODE"/>
+		<result property="confmerId" column="CONFMER_ID"/>
+		<result property="returnResn" column="RETURN_RESN"/>
+		<result property="confmPnttm" column="CONFM_PNTTM"/>
+		<result property="creatIp" column="CREAT_IP"/>
+		<result property="useAt" column="USE_AT"/>
+		<result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+		<result property="frstRegisterId" column="FRST_REGISTER_ID"/>
+	</resultMap>
+	
+	<select id="selectReservationApplyList" resultType="egovMap">
+		SELECT
+			A.REQST_ID
+			, A.RESVE_ID
+			, A.RESVE_DE
+			, A.CHARGER_NM
+			, A.TELNO
+			, A.EMAIL
+			, A.CONFM_SE_CODE
+			, A.CONFMER_ID
+			, A.RETURN_RESN
+			, A.CONFM_PNTTM
+			, A.CREAT_IP
+			, A.USE_AT
+			, A.FRST_REGIST_PNTTM
+			, A.FRST_REGISTER_ID
+		FROM RESVEREQSTINFO A
+		LEFT OUTER JOIN RESVEINFO B ON A.RESVE_ID = B.RESVE_ID
+		<include refid="selectReservationApplyListWhere"></include>
+		ORDER BY A.FRST_REGIST_PNTTM DESC
+		<if test='mngAt != "Y"'>
+			LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+		</if>
+	</select>
+	
+	<select id="selectReservationApplyListCnt" resultType="java.lang.Integer"> <!-- 단순한 카운트 쿼리문 -->
+		SELECT
+			COUNT(*) CNT
+			FROM RESVEREQSTINFO A
+			LEFT OUTER JOIN RESVEINFO B ON A.RESVE_ID = B.RESVE_ID
+			<include refid="selectReservationApplyListWhere"></include>
+	</select>
+	
+	<sql id="selectReservationApplyListWhere">
+		<where>
+			A.USE_AT = 'Y'
+				<if test='resveId != null and resveId != ""'>
+					AND A.RESVE_ID = #{resveId}
+				</if>
+		</where>
+	</sql>
+	
+	<select id="selectReservationApply" resultMap="reservationApply"> <!-- WHERE절에 주목. 원래 PK값은 REQST_ID인데 AND 조건으로 RESVE_ID까지 걸어준 이유- 정상적인 경로를 통했는지 확인 개인정보가 들어가는
+																			부분이라, 현재의 예약정보에다가 클릭을 했을때 그 다음에 신청자 정보가 나오는 것. 신청과 예약 PK를 조회해서 예약한 사람의 정보를 찾기 때문.
+																			예약정보를 정상적으로 접속해서 찾고있는지 점검하는 쿼리문이라고 생각하면 되는 것.  -->
+		SELECT
+			A.REQST_ID
+			, A.RESVE_ID
+			, A.RESVE_DE
+			, A.CHARGER_NM
+			, A.TELNO
+			, A.EMAIL
+			, A.CONFM_SE_CODE
+			, A.CONFMER_ID
+			, A.RETURN_RESN
+			, A.CONFM_PNTTM
+			, A.CREAT_IP
+			, A.USE_AT
+			, A.FRST_REGIST_PNTTM
+			, A.FRST_REGISTER_ID
+		FROM RESVEREQSTINFO A
+		WHERE A.REQST_ID = #{reqstId}
+			AND A.RESVE_ID = #{resveId}
+			AND A.USE_AT = 'Y'
+	</select>
+	
+	<insert id="insertReservationApply" parameterType="egovframework.let.rsv.service.ReservationApplyVO">
+	 	INSERT INTO RESVEREQSTINFO (
+	 		REQST_ID
+			, RESVE_ID
+			, RESVE_DE
+			, CHARGER_NM
+			, TELNO
+			, EMAIL
+			, CONFM_SE_CODE
+			, CREAT_IP
+			, USE_AT
+			, FRST_REGIST_PNTTM
+			, FRST_REGISTER_ID
+			, LAST_UPDT_PNTTM
+			, LAST_UPDUSR_ID
+	 	) VALUES (
+	 		#{reqstId}
+	 		, #{resveId}
+	 		, #{resveDe}
+	 		, #{chargerNm}
+	 		, #{telno}
+	 		, #{email}
+	 		, <choose>
+	 			<when test='resveSeCode == "TYPE01"'>'O'</when> <!-- 선착순 - TYPE01 은 바로 승인-->
+	 			 <otherwise>'R'</otherwise> <!-- 관리자가 승인은 일단 대기 -->
+	 		</choose>
+	 		, #{creatIp}
+	 		, 'Y'
+	 		, NOW()
+	 		, #{userId}
+	 		, NOW()
+	 		, #{userId}
+	 	)
+	</insert>
+	
+	<update id="updateReservationApply" parameterType="egovframework.let.rsv.service.ReservationApplyVO">
+		UPDATE RESVEREQSTINFO SET
+			RESVE_DE = #{resveDe}
+			, CHARGER_NM = #{chargerNm}
+			, TELNO = #{telno}
+			, EMAIL = #{email}
+			<if test='confmSeCode != null and confmSeCode != ""'>
+				, CONFM_SE_CODE = #{confmSeCode}
+			</if>
+			, LAST_UPDT_PNTTM = NOW()
+			, LAST_UPDUSR_ID = #{userId}
+		WHERE REQST_ID = #{reqstId}
+	</update>
+	
+	<update id="deleteReservationApply" parameterType="egovframework.let.rsv.service.ReservationApplyVO"> <!-- 사용여부를 컬럼으로 해서 가져다 쓰는 것 -->
+		UPDATE RESVEREQSTINFO SET
+			USE_AT = 'N'
+		WHERE REQST_ID = #{reqstId}
+	</update>
+	
+	<select id="duplicateApplyCheck" resultType="java.lang.Integer">
+		SELECT
+			COUNT(*) CNT
+		FROM RESVEREQSTINFO A
+		WHERE RESVE_ID = #{resveId}
+		 AND FRST_REGISTER_ID = #{userId}
+		 AND USE_AT = 'Y'
+	</select>
+	
+	<update id="updateReservationConfirm" parameterType="egovframework.let.rsv.service.ReservationApplyVO">
+		UPDATE RESVEREQSTINFO SET
+			CONFM_SE_CODE = #{confmSeCode}
+			, RETURN_RESN = #{returnResn}
+			, CONFMER_ID = #{userId}
+			, CONFM_PNTTM = NOW()
+			, LAST_UPDT_PNTTM = NOW()
+			, LAST_UPDUSR_ID = #{userId}
+		WHERE REQST_ID = #{reqstId} 
+	</update>
+		
+</mapper>
