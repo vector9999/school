@@ -50,7 +50,17 @@ public class ReservationApplyVO extends ReservationVO implements Serializable {
 	private String errorCode;
 	//메세지
 	private String message;
+	//엑셀여부
+	private String excelAt;
 	
+	
+	
+	public String getExcelAt() {
+		return excelAt;
+	}
+	public void setExcelAt(String excelAt) {
+		this.excelAt = excelAt;
+	}
 	public String getResveId() {
 		return resveId;
 	}

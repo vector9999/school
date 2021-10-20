@@ -1,11 +1,13 @@
 package egovframework.let.rsv.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
+import egovframework.com.cmm.service.FileVO;
 import egovframework.let.rsv.service.ReservationApplyService;
 import egovframework.let.rsv.service.ReservationApplyVO;
 import egovframework.let.rsv.service.ReservationService;
@@ -104,6 +106,12 @@ public class ReservationApplyServiceImpl implements ReservationApplyService {
 				vo.setMessage("이미 해당 프로그램이 예약이 되어져 있습니다.");
 			}
 		return vo;
+	}
+
+	@Override
+	public Map<String, Object> excelUpload(FileVO file, ReservationApplyVO vo) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 
