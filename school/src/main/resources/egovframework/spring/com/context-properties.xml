@@ -11,6 +11,9 @@
 	        	<entry key="posblAtchFileSize" value="5242880"/>
 	        	<entry key="Globals.fileStorePath" value="/user/file/sht/"/>
 	        	<entry key="Globals.addedOptions" value="false"/>
+	        	
+	        	<!-- 예약자 업로드 풀리경로 -->
+	        	<entry key="rsvFileStorePath" value="${GLOBAL.WEBPATH}/attachfiles/rsv"/>
 	        </map>
 		</property>
 	</bean>

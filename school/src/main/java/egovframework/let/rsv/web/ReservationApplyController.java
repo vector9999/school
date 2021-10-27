@@ -207,6 +207,7 @@ public class ReservationApplyController {
 		printwriter.flush();
 		printwriter.close();
 	}
+	
 }		
 	
 		

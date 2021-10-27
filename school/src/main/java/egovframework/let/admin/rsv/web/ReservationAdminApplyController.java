@@ -9,15 +9,23 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.method.annotation.JsonViewResponseBodyAdvice;
 
 import egovframework.com.cmm.LoginVO;
 import egovframework.com.cmm.service.EgovFileMngUtil;
+import egovframework.com.cmm.service.FileVO;
 import egovframework.com.cmm.service.Globals;
+import egovframework.com.cmm.service.JsonResponse;
 import egovframework.com.cmm.util.EgovUserDetailsHelper;
 import egovframework.let.rsv.service.ReservationApplyService;
 import egovframework.let.rsv.service.ReservationApplyVO;
@@ -164,4 +172,40 @@ public class ReservationAdminApplyController {
 		return new ModelAndView("excelDownloadView", "dataMap", map); //html을 modelandView로 엑셀로 떨어지게 만든 것. 이 값을 받아와서 excelDownloadView 안을 돌게 되는 것
 		
 	}
+	
+	//엑셀업로드
+	@RequestMapping(value = "/admin/rsv/excelUpload.json", method=RequestMethod.POST)
+	public @ResponseBody JsonResponse excelUpload(ReservationApplyVO searchVO, HttpServletRequest request, HttpServletResponse response, ModelMap model, MultipartHttpServletRequest multiRequest) throws Exception {
+		LoginVO user = (LoginVO)EgovUserDetailsHelper.getAuthenticatedUser(); //admin권한 가진 사람만 접속할수 있도록 추가해도 됨.
+		JsonResponse res = new JsonResponse(); //반환할 객체를 한번 선언
+		res.setSuccess(true); //엑셀 파일은 업로드가 되고 나서! 읽는것. 서버로 들어와진 파일을 java에서 읽는 것. - 이미지(파일업로드 된 후, 읽게됨)와 유사
+		
+		try { //파일을 저장하는 부분.
+		List<FileVO> result = null;
+		final Map<String, MultipartFile> files = multiRequest.getFileMap();
+		if(!files.isEmpty()) { //common library 사용.
+			result = fileUtil.parseFileInf(files, "TEMP_", 0, null, "rsvFileStorePath");
+			Map<String, Object> resultMap = new HashMap<>();
+		
+		for(FileVO file : result) {
+			if("xls".equals(file.getFileExtsn()) || "xlsx".equals(file.getFileExtsn())) {
+				searchVO.setCreatIp(request.getRemoteAddr());
+				resultMap = reservationServiceApply.excelUpload(file, searchVO);
+				if(!(Boolean)resultMap.get("success")) {
+					res.setMessage(String.valueOf(resultMap.get("msg")));
+					ArrayList resultList = (ArrayList) resultMap.get("resultList");
+					res.setData(resultList);
+					res.setSuccess(false);
+					}
+				}
+			}
+		}
+	} catch(DataAccessException e) {
+		res.setMessage(e.getLocalizedMessage());
+		}
+		
+		return res;
+	}
+			
 }
+
