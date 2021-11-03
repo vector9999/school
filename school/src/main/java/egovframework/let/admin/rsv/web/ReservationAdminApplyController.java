@@ -176,15 +176,15 @@ public class ReservationAdminApplyController {
 	//엑셀업로드
 	@RequestMapping(value = "/admin/rsv/excelUpload.json", method=RequestMethod.POST)
 	public @ResponseBody JsonResponse excelUpload(ReservationApplyVO searchVO, HttpServletRequest request, HttpServletResponse response, ModelMap model, MultipartHttpServletRequest multiRequest) throws Exception {
-		LoginVO user = (LoginVO)EgovUserDetailsHelper.getAuthenticatedUser(); //admin권한 가진 사람만 접속할수 있도록 추가해도 됨.
-		JsonResponse res = new JsonResponse(); //반환할 객체를 한번 선언
-		res.setSuccess(true); //엑셀 파일은 업로드가 되고 나서! 읽는것. 서버로 들어와진 파일을 java에서 읽는 것. - 이미지(파일업로드 된 후, 읽게됨)와 유사
+		LoginVO user = (LoginVO)EgovUserDetailsHelper.getAuthenticatedUser(); //나중에 admin권한 가진 사람만 접속할수 있도록 추가해도 되는 옵션. 검증체크를 위한 3줄
+		JsonResponse res = new JsonResponse(); //반환할 객체를 한번 선언, Gson Library 추가(결과값으로 Json을 리턴하게끔)
+		res.setSuccess(true); //기본값은 true로 설정. 엑셀 파일은 업로드가 되고 나서! 읽는것. 서버로 들어와진 파일을 java에서 읽는 것. - 이미지(파일업로드 된 후, 읽게됨)와 유사
 		
 		try { //파일을 저장하는 부분.
 		List<FileVO> result = null;
 		final Map<String, MultipartFile> files = multiRequest.getFileMap();
 		if(!files.isEmpty()) { //common library 사용.
-			result = fileUtil.parseFileInf(files, "TEMP_", 0, null, "rsvFileStorePath");
+			result = fileUtil.parseFileInf(files, "TEMP_", 0, null, "rsvFileStorePath"); //rsvFileStorePath(경로)가 제일 중요함. - context-properties.xml
 			Map<String, Object> resultMap = new HashMap<>();
 		
 		for(FileVO file : result) {

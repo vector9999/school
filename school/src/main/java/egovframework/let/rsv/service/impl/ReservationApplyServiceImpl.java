@@ -126,12 +126,12 @@ public class ReservationApplyServiceImpl implements ReservationApplyService {
 			}
 		return vo;
 	}
-
+	//예약자 엑셀 업로드 
 	@Override
 	public Map<String, Object> excelUpload(FileVO fileVO, ReservationApplyVO vo) throws Exception {
 		String fileExt = fileVO.getFileExtsn();
 		FileInputStream stream = new FileInputStream(fileVO.getFileStreCours() + "/" + fileVO.getStreFileNm());
-		File file = new File(fileVO.getFileStreCours() + "/" + fileVO.getStreFileNm());
+		File file = new File(fileVO.getFileStreCours() + "/" + fileVO.getStreFileNm()); //엑셀 파일을 읽음
 		
 		Boolean result = true;
 		Boolean totResult = true;
@@ -141,7 +141,7 @@ public class ReservationApplyServiceImpl implements ReservationApplyService {
 		
 		Map<String, Object> map = new HashMap<String, Object>();
 		
-		//기존 예약자
+		//기존 예약자 - 예약자가 있는지 체크
 		List<EgovMap> existUserList = reservationApplyMapper.selectReservationApplyList(vo);
 		
 		//엑셀ID
@@ -160,12 +160,12 @@ public class ReservationApplyServiceImpl implements ReservationApplyService {
 			//int sheetNum = wb.getNumberOfSheets()//시트 갯수 가져오기
 			if(wb != null) {
 				Sheet sheet = wb.getSheetAt(0);
-				int rows = sheet.getPhysicalNumberOfRows(); //행 갯수 가져오기
-				for(int r = 1; r < rows; r++) { //row 루프
+				int rows = sheet.getPhysicalNumberOfRows(); //행 갯수 가져오기 - for문을 돌기 위함
+				for(int r = 1; r < rows; r++) { //row 루프 - 행 갯수 만큼 돌게됨
 					Row row = sheet.getRow(r);
 					if(row!= null ) {
 					int cells = row.getPhysicalNumberOfCells();
-					for(int c = 0; c < 4; c++) {
+					for(int c = 0; c < 4; c++) { //cell 가져오기 - 총 열의 갯수, 자바에서는 데이터를 행으로 읽기 때문에 몇번열까지 데이터가 있는지 java에 알려주어야함. 만약 다른 프로젝트에서 사용하게 된다면 4라는 숫자 대신 변수로 선언해서 사용할 수도 있을 것.
 						Cell cell = row.getCell(c);
 						result = true;
 						if(cell != null) {
@@ -173,7 +173,7 @@ public class ReservationApplyServiceImpl implements ReservationApplyService {
 							switch (cell.getCellType()) {
 							case Cell.CELL_TYPE_FORMULA:
 								if(!EgovStringUtil.isEmpty(cell.toString())) {
-									switch (eval.evaluateFormulaCell(cell)) {
+									switch (eval.evaluateFormulaCell(cell)) { //엑셀이 어떤 데이터 가지고 있는지 검증(고정된 코드)
 									case Cell.CELL_TYPE_NUMERIC:
 										if(HSSFDateUtil.isCellDateFormatted(cell)) {
 											SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -228,12 +228,12 @@ public class ReservationApplyServiceImpl implements ReservationApplyService {
 								value = value.trim();
 							}
 							
-							switch (c) {
+							switch (c) { //for문이 돌면서 실제로 파일을 입력
 							case 0:
-								vo.setUserId(value); //신청자ID
+								vo.setChargerNm(value); //신청자명
 								break;
 							case 1:
-								vo.setChargerNm(value); //신청자명
+								vo.setUserId(value); //신청자ID
 								break;
 							case 2:
 								vo.setTelno(value); //연락처
@@ -281,17 +281,17 @@ public class ReservationApplyServiceImpl implements ReservationApplyService {
 					if(result && !EgovStringUtil.isEmpty(vo.getUserId())) {
 						String id = idgenService.getNextStringId();
 						vo.setReqstId(id);
-						reservationApplyMapper.insertReservationApply(vo);
+						reservationApplyMapper.insertReservationApplyTemp(vo);
 						duplList.add(vo.getUserId());
 					}
 				}
 			}
 		}
 			
-			List<EgovMap> tempList = reservationApplyMapper.selectReservationApplyTemp(vo);
+			List<EgovMap> tempList = reservationApplyMapper.selectReservationApplyTemp(vo); //임시예약자 목록 가져오기
 			if(tempList.size() > 0) {
 				//일괄등록
-				reservationApplyMapper.insertReservationApplyTempAll(vo);
+				reservationApplyMapper.insertReservationApplyTempAll(vo); //임시예약자를 예약자로 일괄 등록하기
 			}
 		}
 		
@@ -309,7 +309,7 @@ public class ReservationApplyServiceImpl implements ReservationApplyService {
 		e.printStackTrace();
 	} finally {
 		//임시데이터 삭제
-		reservationApplyMapper.deleteReservationApply(vo);
+		reservationApplyMapper.deleteReservationApplyTemp(vo);
 		file.delete();
 	}
 	

@@ -26,5 +26,5 @@ public interface ReservationApplyService {
 	//예약 가능여부 확인
 	public ReservationApplyVO rsvCheck(ReservationApplyVO vo) throws Exception;
 	//예약자 엑셀 업로드
-	public Map<String, Object> excelUpload(FileVO file, ReservationApplyVO vo) throws Exception;
+	public Map<String, Object> excelUpload(FileVO file, ReservationApplyVO vo) throws Exception;	
 }

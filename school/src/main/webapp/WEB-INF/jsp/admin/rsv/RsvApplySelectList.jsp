@@ -156,7 +156,7 @@
 							<a href="{listUrl}" class="btn">목록</a>
 						</div>
 						<div class="excelUploadBox">
-							<form action="excelForm" name="excelForm" action="/admin/rsv/excelUpload.json" enctype="multipart/form-data" method="post">
+							<form id="excelForm" name="excelForm" action="/admin/rsv/excelUpload.json" enctype="multipart/form-data" method="post">
 								<input type="hidden" name="resveId" id="resveId" value="${param.resveId}"/>
 								<input type="hidden" name="resveDe" value="TYPE01"/>
 								
@@ -165,6 +165,8 @@
 								<label for="registerExcelFile">파일첨부</label>
 								<input type="file" id="registerExcelFile" name="registerExcelFile">
 								<a href="#" id="excelReg" class="btn btn_blue">등록</a>
+								
+								<button type="submit">gogo</button>
 							</form>
 						</div>
 					</div>
@@ -191,11 +193,11 @@
 			}
 		});
 		
-		$(document).on('click', '#excelReg', function(e){
-			if($('#resgisterExcelFile').val()=='') {}
-			alert('파일을 등록해주세요.');
-			return false;
-		}
+	$(document).on('click', '#excelReg', function(e){
+			if($('#resgisterExcelFile').val()=='') {
+				alert('파일을 등록해주세요.');
+				return false;
+			}
 		
 		var form = new FormData($('#excelForm')[0]);
 		var url = $('#excelForm').attr('action');
@@ -204,10 +206,15 @@
 			url: url,
 			type: 'POST',
 			data: form,
+			async:false,
+			cache:false,
+			contentType:false,
+			processData:false,
 			dataType: 'json'
 			, success: function(result){
 				var message = "";
 				if(result.success) {
+					$("#excel").hide();
 					window.location.reload();
 				} else {
 					for(i=0; i<result.data.length; i++){
@@ -219,6 +226,8 @@
 					alert(message);
 					window.loacation.reload();
 				}
+			}, error : function(data){
+				console.log(data);
 			}
 		});
 		return false

@@ -53,8 +53,17 @@ public class ReservationApplyVO extends ReservationVO implements Serializable {
 	//엑셀여부
 	private String excelAt;
 	
+	//임시예약자 id
+	private String reqsttempId;
 	
 	
+	
+	public String getReqsttempId() {
+		return reqsttempId;
+	}
+	public void setReqsttempId(String reqsttempId) {
+		this.reqsttempId = reqsttempId;
+	}
 	public String getExcelAt() {
 		return excelAt;
 	}

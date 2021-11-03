@@ -51,4 +51,16 @@ public interface ReservationApplyMapper {
 	
 	//예약가능여부 확인
 	void rsvCheck(ReservationApplyVO vo) throws Exception;
+	
+	//임시예약자 등록하기
+	void insertReservationApplyTemp(ReservationApplyVO vo) throws Exception;
+	
+	//임시예약자 삭제하기
+	void deleteReservationApplyTemp(ReservationApplyVO vo) throws Exception;
+	
+	//임시예약자 목록 가져오기
+	List<EgovMap> selectReservationApplyTemp(ReservationApplyVO vo) throws Exception;
+	
+	//임시예약자 예약자로 일괄등록
+	void insertReservationApplyTempAll(ReservationApplyVO vo) throws Exception;
 }
